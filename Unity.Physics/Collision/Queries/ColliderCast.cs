@@ -115,6 +115,11 @@ namespace Unity.Physics
         /// <value> Returns a value between 0 and 1. </value>
         public float Fraction { get; set; }
 
+        /// <summary>   Fraction of the distance along the Ray right before the hit occurred. </summary>
+        ///
+        /// <value> Returns a value between 0 and 1. </value>
+        public float LastFraction { get; set; }
+
         /// <summary>   Gets or sets the zero-based index of the rigid body. </summary>
         ///
         /// <value> Returns RigidBodyIndex of queried body. </value>
@@ -364,6 +369,7 @@ namespace Unity.Physics
             const float keepDistance = 1e-4f;   // avoid bad cases for GJK (penetration / exact hit)
             int iterations = 10;                // return after this many advances, regardless of accuracy
             float fraction = 0.0f;
+            float lastFraction = 0.0f;          // last fraction that didn't detect a hit; allows casting again from a new position in a new direction
 
             float keepDistanceScaled = keepDistance * math.abs(input.QueryContext.InvTargetScale);
             float toleranceScaled = tolerance * math.abs(input.QueryContext.InvTargetScale);
@@ -395,6 +401,7 @@ namespace Unity.Physics
 
                     float3 normal = math.select(-distanceResult.NormalInA, distanceResult.NormalInA, input.QueryContext.TargetScale < 0.0f);
                     hit.SurfaceNormal = math.mul(input.QueryContext.WorldFromLocalTransform.Rotation, normal);
+                    hit.LastFraction = lastFraction;
                     hit.Fraction = fraction;
                     hit.RigidBodyIndex = input.QueryContext.RigidBodyIndex;
                     hit.ColliderKey = input.QueryContext.ColliderKey;
@@ -414,6 +421,7 @@ namespace Unity.Physics
                 }
 
                 // Advance
+                lastFraction = fraction;
                 fraction += (distanceResult.Distance - keepDistanceScaled) / dot;
                 if (fraction >= maxFraction)
                 {
