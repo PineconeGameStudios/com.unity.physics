@@ -28,6 +28,7 @@ namespace Unity.Physics.Authoring
         static readonly IReadOnlyDictionary<UnityPhysicsMaterialCombine, Material.CombinePolicy> k_MaterialCombineLookup =
             new Dictionary<UnityPhysicsMaterialCombine, Material.CombinePolicy>
         {
+            { UnityPhysicsMaterialCombine.Multiply, Material.CombinePolicy.GeometricMean },
             { UnityPhysicsMaterialCombine.Average, Material.CombinePolicy.ArithmeticMean },
             { UnityPhysicsMaterialCombine.Maximum, Material.CombinePolicy.Maximum },
             { UnityPhysicsMaterialCombine.Minimum, Material.CombinePolicy.Minimum }
