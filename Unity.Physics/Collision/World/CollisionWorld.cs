@@ -21,7 +21,7 @@ namespace Unity.Physics
     {
         [NoAlias] private NativeArray<RigidBody> m_Bodies;    // storage for all the rigid bodies
         [NoAlias] internal Broadphase Broadphase;             // bounding volume hierarchies around subsets of the rigid bodies
-        [NoAlias] internal NativeHashMap<Entity, int> EntityBodyIndexMap;
+        [NoAlias] internal NativeParallelHashMap<Entity, int> EntityBodyIndexMap;
         [NativeDisableContainerSafetyRestriction]
         [NoAlias] private NativeList<BlobAssetReference<Collider>> m_ColliderDeepCopies;
 
@@ -79,7 +79,7 @@ namespace Unity.Physics
         {
             m_Bodies = new NativeArray<RigidBody>(numStaticBodies + numDynamicBodies, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             Broadphase = new Broadphase(numStaticBodies, numDynamicBodies);
-            EntityBodyIndexMap = new NativeHashMap<Entity, int>(m_Bodies.Length, Allocator.Persistent);
+            EntityBodyIndexMap = new NativeParallelHashMap<Entity, int>(m_Bodies.Length, Allocator.Persistent);
             m_ColliderDeepCopies = new NativeList<BlobAssetReference<Collider>>();
             CollisionTolerance = DefaultCollisionTolerance;
         }
@@ -147,7 +147,7 @@ namespace Unity.Physics
             {
                 m_Bodies = new NativeArray<RigidBody>(m_Bodies, Allocator.Persistent),
                 Broadphase = Broadphase.Clone(),
-                EntityBodyIndexMap = new NativeHashMap<Entity, int>(m_Bodies.Length, Allocator.Persistent),
+                EntityBodyIndexMap = new NativeParallelHashMap<Entity, int>(m_Bodies.Length, Allocator.Persistent),
                 m_ColliderDeepCopies = default
             };
             clone.UpdateBodyIndexMap();
@@ -180,7 +180,7 @@ namespace Unity.Physics
             {
                 m_Bodies = new NativeArray<RigidBody>(m_Bodies, Allocator.Persistent),
                 Broadphase = Broadphase.Clone(),
-                EntityBodyIndexMap = new NativeHashMap<Entity, int>(m_Bodies.Length, Allocator.Persistent),
+                EntityBodyIndexMap = new NativeParallelHashMap<Entity, int>(m_Bodies.Length, Allocator.Persistent),
                 m_ColliderDeepCopies = default
             };
             clone.UpdateBodyIndexMap();
@@ -458,6 +458,7 @@ namespace Unity.Physics
                     {
                         var bodyFilters = world.CollisionWorld.Broadphase.DynamicTree.BodyFilters.AsArray();
                         var respondsToCollision = world.CollisionWorld.Broadphase.DynamicTree.RespondsToCollision.AsArray();
+                        var bodySolverTypes = world.CollisionWorld.Broadphase.DynamicTree.BodySolverTypes.AsArray();
 
                         collectDynamicCoherenceInfoHandle = new CollectTemporalCoherenceInfoJob
                         {
@@ -465,7 +466,8 @@ namespace Unity.Physics
                             LocalToWorldType = componentHandles.LocalToWorldType,
                             LocalTransformType = componentHandles.LocalTransformType,
                             PhysicsColliderType = componentHandles.PhysicsColliderType,
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+                            PhysicsSolverTypeType = componentHandles.PhysicsSolverTypeType,
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
                             PhysicsWorldIndexType = componentHandles.PhysicsWorldIndexType,
 #endif
                             ChunkBaseEntityIndices = dynamicBodyChunkBaseEntityIndices,
@@ -478,8 +480,10 @@ namespace Unity.Physics
                             Nodes = world.CollisionWorld.Broadphase.DynamicTree.Nodes,
                             BodyFilters = bodyFilters,
                             RespondsToCollision = respondsToCollision,
+                            BodySolverTypes = bodySolverTypes,
                             BodyFiltersLastFrame = CreateArrayCopy(bodyFilters, worldUpdateAllocator),
                             RespondsToCollisionLastFrame = CreateArrayCopy(respondsToCollision, worldUpdateAllocator),
+                            BodySolverTypesLastFrame = CreateArrayCopy(bodySolverTypes, worldUpdateAllocator),
                             RigidBodies = world.CollisionWorld.DynamicBodies,
                             MotionVelocities = world.DynamicsWorld.MotionVelocities,
                             CollisionTolerance = world.CollisionWorld.CollisionTolerance,
@@ -523,6 +527,7 @@ namespace Unity.Physics
                     {
                         var bodyFilters = world.CollisionWorld.Broadphase.StaticTree.BodyFilters.AsArray();
                         var respondsToCollision = world.CollisionWorld.Broadphase.StaticTree.RespondsToCollision.AsArray();
+                        var bodySolverTypes = world.CollisionWorld.Broadphase.StaticTree.BodySolverTypes.AsArray();
 
                         collectStaticCoherenceInfoHandle = new CollectTemporalCoherenceInfoJob
                         {
@@ -530,7 +535,8 @@ namespace Unity.Physics
                             LocalToWorldType = componentHandles.LocalToWorldType,
                             LocalTransformType = componentHandles.LocalTransformType,
                             PhysicsColliderType = componentHandles.PhysicsColliderType,
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+                            PhysicsSolverTypeType = componentHandles.PhysicsSolverTypeType,
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
                             PhysicsWorldIndexType = componentHandles.PhysicsWorldIndexType,
 #endif
                             ChunkBaseEntityIndices = staticBodyChunkBaseEntityIndices,
@@ -543,8 +549,10 @@ namespace Unity.Physics
                             Nodes = world.CollisionWorld.Broadphase.StaticTree.Nodes,
                             BodyFilters = bodyFilters,
                             RespondsToCollision = respondsToCollision,
+                            BodySolverTypes = bodySolverTypes,
                             BodyFiltersLastFrame = CreateArrayCopy(bodyFilters, worldUpdateAllocator),
                             RespondsToCollisionLastFrame = CreateArrayCopy(respondsToCollision, worldUpdateAllocator),
+                            BodySolverTypesLastFrame = CreateArrayCopy(bodySolverTypes, worldUpdateAllocator),
                             RigidBodies = world.CollisionWorld.StaticBodies,
                             Static = true,
 
@@ -886,8 +894,9 @@ namespace Unity.Physics
             [ReadOnly] public ComponentTypeHandle<LocalToWorld> LocalToWorldType;
             [ReadOnly] public ComponentTypeHandle<LocalTransform> LocalTransformType;
             [ReadOnly] public ComponentTypeHandle<PhysicsCollider> PhysicsColliderType;
+            [ReadOnly] public ComponentTypeHandle<PhysicsSolverType> PhysicsSolverTypeType;
 
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
             [ReadOnly] public SharedComponentTypeHandle<PhysicsWorldIndex> PhysicsWorldIndexType;
 #endif
 
@@ -907,6 +916,8 @@ namespace Unity.Physics
             public NativeArray<CollisionFilter> BodyFilters;
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<bool> RespondsToCollision;
+            [NativeDisableContainerSafetyRestriction]
+            public NativeArray<SolverType> BodySolverTypes;
 
             [ReadOnly]
             [NativeDisableContainerSafetyRestriction]
@@ -914,6 +925,9 @@ namespace Unity.Physics
             [ReadOnly]
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<bool> RespondsToCollisionLastFrame;
+            [ReadOnly]
+            [NativeDisableContainerSafetyRestriction]
+            public NativeArray<SolverType> BodySolverTypesLastFrame;
 
             [ReadOnly] public NativeArray<RigidBody> RigidBodies;
             [NativeDisableContainerSafetyRestriction]
@@ -941,7 +955,7 @@ namespace Unity.Physics
                 }
 #endif
 
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
                 // The incremental broadphase feature is only supported in the default world
                 var defaultWorldIndex = new PhysicsWorldIndex();
                 var physicsWorldIndex = chunk.GetSharedComponent(PhysicsWorldIndexType);
@@ -953,6 +967,7 @@ namespace Unity.Physics
                     chunk.DidChange(ref LocalToWorldType, LastSystemVersion) ||
                     chunk.DidChange(ref LocalTransformType, LastSystemVersion);
                 var colliderChangedInChunk = chunk.DidChange(ref PhysicsColliderType, LastSystemVersion);
+                var solverTypeChangedInChunk = chunk.DidChange(ref PhysicsSolverTypeType, LastSystemVersion);
                 var temporalCoherenceDataChanged = chunk.DidChange(ref PhysicsTemporalCoherenceInfoTypeRW, LastSystemVersion);
                 var chunkOrderChanged = chunk.DidOrderChange(LastSystemVersion);
 
@@ -969,7 +984,7 @@ namespace Unity.Physics
                         chunk.GetComponentDataPtrRW(ref PhysicsTemporalCoherenceInfoTypeRW);
 
                     // early out in case nothing of relevance for incremental broadphase changed in this chunk
-                    if (!(transformChangedInChunk || colliderChangedInChunk || temporalCoherenceDataChanged || chunkOrderChanged))
+                    if (!(transformChangedInChunk || colliderChangedInChunk || solverTypeChangedInChunk || temporalCoherenceDataChanged || chunkOrderChanged))
                     {
                         var entityIter = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
 
@@ -992,7 +1007,7 @@ namespace Unity.Physics
                             // Nothing changed in this chunk, but the starting entity index changed.
                             // So we have to update internal broadphase data structures:
                             // 1. update data in BVH node and coherence info
-                            // 2. shift data in RespondsToCollision and CollisionFilter arrays using memcpy from the last frame's data.
+                            // 2. shift data in RespondsToCollision, CollisionFilter and BodySolverTypes arrays using memcpy from the last frame's data.
 
                             do
                             {
@@ -1042,6 +1057,11 @@ namespace Unity.Physics
                                 (bool*)RespondsToCollision.GetUnsafePtr() + firstBodyIndex,
                                 (bool*)RespondsToCollisionLastFrame.GetUnsafePtr() + firstBodyIndexLastFrame,
                                 sizeof(bool) * chunk.Count);
+
+                            UnsafeUtility.MemCpy(
+                                (SolverType*)BodySolverTypes.GetUnsafePtr() + firstBodyIndex,
+                                (SolverType*)BodySolverTypesLastFrame.GetUnsafePtr() + firstBodyIndexLastFrame,
+                                sizeof(SolverType) * chunk.Count);
                         }
 
                         return;
@@ -1141,6 +1161,13 @@ namespace Unity.Physics
                                     collisionFilterChanged = !previousFilter.Equals(collisionFilter);
                                     BodyFilters[bodyIndex] = collisionFilter;
                                     RespondsToCollision[bodyIndex] = respondsToCollision;
+                                }
+
+                                // check if we need to update the solver type
+                                var needSolverTypeUpdate = bodyIndexChanged || solverTypeChangedInChunk;
+                                if (needSolverTypeUpdate)
+                                {
+                                    BodySolverTypes[bodyIndex] = body.SolverType;
                                 }
 
                                 // check if we need to update the AABB in the broadphase
@@ -1279,6 +1306,7 @@ namespace Unity.Physics
 
                                 BodyFilters[bodyIndex] = collisionFilter;
                                 RespondsToCollision[bodyIndex] = respondsToCollision;
+                                BodySolverTypes[bodyIndex] = body.SolverType;
 
                                 InsertBodyDataWriter.Write(new Broadphase.InsertionData
                                 {
@@ -1433,6 +1461,16 @@ namespace Unity.Physics
             return Broadphase.CastRay(input, m_Bodies, ref collector);
         }
 
+#if BVH_COLLECT_METRICS
+        // An overload for gathering performance BVH Metrics of the Static BVH Tree
+        internal bool CastRay<T>(RaycastInput input, ref T collector, out BVHTraversalMetrics metrics)
+            where T : struct, ICollector<RaycastHit>
+        {
+            input.QueryContext.InitScale();
+            return Broadphase.CastRay(input, m_Bodies, ref collector, out metrics);
+        }
+#endif
+
         /// <summary>   Cast collider. </summary>
         ///
         /// <param name="input">    The input. </param>
@@ -1468,6 +1506,16 @@ namespace Unity.Physics
             input.InitScale();
             return Broadphase.CastCollider(input, m_Bodies, ref collector);
         }
+
+#if BVH_COLLECT_METRICS
+        // An overload for gathering performance BVH Metrics of the Static BVH Tree
+        internal bool CastCollider<T>(ColliderCastInput input, ref T collector, out BVHTraversalMetrics metrics)
+            where T : struct, ICollector<ColliderCastHit>
+        {
+            input.InitScale();
+            return Broadphase.CastCollider(input, m_Bodies, ref collector, out metrics);
+        }
+#endif
 
         /// <summary>   Calculates the distance. </summary>
         ///
@@ -1505,6 +1553,16 @@ namespace Unity.Physics
             return Broadphase.CalculateDistance(input, m_Bodies, ref collector);
         }
 
+#if BVH_COLLECT_METRICS
+        // An overload for gathering performance BVH Metrics of the Static BVH Tree
+        internal bool CalculateDistance<T>(PointDistanceInput input, ref T collector, out BVHTraversalMetrics metrics)
+            where T : struct, ICollector<DistanceHit>
+        {
+            input.QueryContext.InitScale();
+            return Broadphase.CalculateDistance(input, m_Bodies, ref collector, out metrics);
+        }
+#endif
+
         /// <summary>   Calculates the distance. </summary>
         ///
         /// <param name="input">    The input. </param>
@@ -1540,6 +1598,16 @@ namespace Unity.Physics
             input.InitScale();
             return Broadphase.CalculateDistance(input, m_Bodies, ref collector);
         }
+
+#if BVH_COLLECT_METRICS
+        // An overload for gathering performance BVH Metrics of the Static BVH Tree
+        internal bool CalculateDistance<T>(ColliderDistanceInput input, ref T collector, out BVHTraversalMetrics metrics)
+            where T : struct, ICollector<DistanceHit>
+        {
+            input.InitScale();
+            return Broadphase.CalculateDistance(input, m_Bodies, ref collector, out metrics);
+        }
+#endif
 
         #region GO API Queries
 

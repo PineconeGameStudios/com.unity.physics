@@ -31,7 +31,7 @@ There are two potential methods to create a rotation motor using a GameObject Co
 #### Method 1) Using a `Hinge Joint` Component:
 1. Starting from a SubScene, add a GameObject > Cube. Rename it 'StaticCube'. A BoxCollider should already be present as a component.
 2. Add a `Rigidbody` component to 'StaticCube' and then disable `Use Gravity` and enable `Is Kinematic`.
-3. Create another Cube and parent it from 'StaticCube'. Name this one 'RotationMotor'. Add a `Rigidbody`. Set the Transform Position to (0,-1,0)
+3. Create another Cube and make it a child of 'StaticCube'. Name this one 'RotationMotor'. Add a `Rigidbody`. Set the Transform Position to (0,-1,0)
 4. Add a `Hinge Joint` component to the 'RotationalMotor' GameObject
 5. To set up the General Rotation Motor Example 1 with a pivot at (0.5, 0.5, 0) and rotation along the z-axis, set the following:
    - `Connected Body` = 'StaticCube'. Motor rotation will be relative to this body.
@@ -127,7 +127,7 @@ To set up the General Rotation Motor Example 1, follow these steps:
 1. Starting from a SubScene, add a GameObject > Cube. Rename it 'StaticCube'. A BoxCollider should already be present as a component. Remove the Box Collider.
 2. Add a `Physics Body` Component to 'StaticCube' (a `Physics Body` is the ECS custom component similar to a `Rigidbody`). Set `Motion Type` to Static.
 3. Add a `Physics Shape` Component to 'StaticCube' (a `Physics Shape` is the ECS custom component similar to a `Box Collider`). Don't modify the default settings.
-4. Create another Cube and parent it from 'StaticCube'. Name this one 'RotationMotor'. Add a `Physics Body`; no settings need to be modified. Set the Transform Position to (0,-1,0).
+4. Create another Cube and make it a child of 'StaticCube'. Name this one 'RotationMotor'. Add a `Physics Body`; no settings need to be modified. Set the Transform Position to (0,-1,0).
 5. Add the `Rotational Motor` component to the 'RotationalMotor' GameObject. (The script needs to be available locally)
 6. To set up the General Rotation Motor Example 1 with a pivot at (0.5, 0.5, 0) and rotation along the z-axis, set the following:
   - `Connected Body` = 'StaticCube'. Motor rotation will be relative to this body.
@@ -167,7 +167,7 @@ There are two potential methods to create an angular velocity motor using a Game
 #### Method 1) Using a `Hinge Joint` Component:
 1. Starting from a SubScene, add a GameObject > Cube. Rename it 'StaticCube'. A BoxCollider should already be present as a component.
 2. Add a `Rigidbody` component and then disable `Use Gravity` and enable `Is Kinematic`.
-3. Create another Cube and parent it from 'StaticCube'. Name this one 'AngularVelocityMotor'. Add a `Rigidbody`. Set the Transform Position to (0,1,0)
+3. Create another Cube and make it a child of 'StaticCube'. Name this one 'AngularVelocityMotor'. Add a `Rigidbody`. Set the Transform Position to (0,1,0)
 4. Add a `Hinge Joint` component to the 'AngularVelocityMotor' GameObject
 5. To set up the General Angular Velocity Motor Example 1 with a pivot at (0.5, 0, 0.5) and rotation along the y-axis, set the following:
   - `Connected Body` = 'StaticCube'. Motor rotation will be relative to this body.
@@ -259,7 +259,7 @@ To set up the General Angular Velocity Motor Example 1, follow these steps:
 1. Starting from a SubScene, add a GameObject > Cube. Rename it 'StaticCube'. A BoxCollider should already be present as a component. Remove the Box Collider.
 2. Add a `Physics Body` Component to 'StaticCube' (a `Physics Body` is the ECS custom component similar to a `Rigidbody`). Set `Motion Type` to Static.
 3. Add a `Physics Shape` Component to 'StaticCube' (a `Physics Shape` is the ECS custom component similar to a `Box Collider`). Don't modify the default settings.
-4. Create another Cube and parent it from 'StaticCube'. Name this one 'AVM'. Add a `Physics Body`; no settings need to be modified. Set the Transform Position to (0,1,0)
+4. Create another Cube and make it a child of 'StaticCube'. Name this one 'AVM'. Add a `Physics Body`; no settings need to be modified. Set the Transform Position to (0,1,0)
 5. Add the `Angular Velocity Motor` component to the 'AVM' GameObject (The script needs to be available locally)
 6. To set up the General Angular Velocity Motor Example 1 with a pivot at (0.5, 0, 0.5) and rotation along the y-axis, set the following:
 - `Connected Body` = 'StaticCube'. Motor rotation will be relative to this body.
@@ -299,7 +299,7 @@ The only GameObject component that can be used to author a position motor is a `
 Using a `Configurable Joint` Component:
 1. Starting from a SubScene, add a GameObject > Cube. Rename it 'StaticCube'. A BoxCollider should already be present as a component.
 2. Add a `Rigidbody` component and then disable `Use Gravity` and enable `Is Kinematic`.
-3. Create another Cube and parent it from 'StaticCube'. Name this one 'PositionMotor'. Add a `Rigidbody`. Set the Transform Position to (1,0,0)
+3. Create another Cube and make it a child of 'StaticCube'. Name this one 'PositionMotor'. Add a `Rigidbody`. Set the Transform Position to (1,0,0)
 4. Add a `Configurable Joint` to the 'PositionMotor' GameObject
 5. To set up the General Position Motor Example 1, set the following:
   - `Connected Body` = 'StaticCube'. Motor movement will be relative to this body.
@@ -369,7 +369,7 @@ To set up the General Position Motor Example 1, follow these steps:
 1. Starting from a SubScene, add a GameObject > Cube. Rename it 'StaticCube'. A BoxCollider should already be present as a component. Remove the Box Collider.
 2. Add a `Physics Body` Component to 'StaticCube' (a `Physics Body` is the ECS custom component similar to a `Rigidbody`). Set `Motion Type` to Static.
 3. Add a `Physics Shape` Component to 'StaticCube' (a `Physics Shape` is the ECS custom component similar to a `Box Collider`). Don't modify the default settings.
-4. Create another Cube and parent it from 'StaticCube'. Name this one 'PositionMotor'. Add a `Physics Body`; no settings need to be modified. Set the Transform Position to (1,0,0)
+4. Create another Cube and make it a child of 'StaticCube'. Name this one 'PositionMotor'. Add a `Physics Body`; no settings need to be modified. Set the Transform Position to (1,0,0)
 5. Add the `Position Motor` component to the 'PositionMotor' GameObject (The script needs to be available locally)
 6. Let's say we want to make this motor move along the x-axis to a location +2 away, set the following:
    - `Connected Body` = 'StaticCube'. Motor rotation will be relative to this body.

@@ -6,7 +6,7 @@ using Unity.Mathematics;
 namespace Unity.Physics
 {
     /// <summary>   Interface for objects that can be hit by physics queries. </summary>
-    public interface ICollidable    // TODO: rename to Physics.IQueryable?
+    public interface ICollidable
     {
         // Bounding box
 
@@ -763,7 +763,7 @@ namespace Unity.Physics
                     }
                     else
                     {
-                        var interactionCollector = new QueryInteractionCollector<DistanceHit, C>(ref collector, true, Entities.Entity.Null);
+                        var interactionCollector = new QueryInteractionCollector<DistanceHit, C>(ref collector, true);
                         return ptr->CalculateDistance(input, ref interactionCollector);
                     }
                 }
@@ -838,7 +838,7 @@ namespace Unity.Physics
                     }
                     else
                     {
-                        var interactionCollector = new QueryInteractionCollector<DistanceHit, C>(ref collector, true, Entities.Entity.Null);
+                        var interactionCollector = new QueryInteractionCollector<DistanceHit, C>(ref collector, true);
                         return ptr->CalculateDistance(input, ref interactionCollector);
                     }
                 }
@@ -913,7 +913,7 @@ namespace Unity.Physics
                     }
                     else
                     {
-                        var interactionCollector = new QueryInteractionCollector<DistanceHit, C>(ref collector, true, Entities.Entity.Null);
+                        var interactionCollector = new QueryInteractionCollector<DistanceHit, C>(ref collector, true);
                         return ptr->CalculateDistance(input, ref interactionCollector);
                     }
                 }
@@ -981,7 +981,7 @@ namespace Unity.Physics
                     }
                     else
                     {
-                        var interactionCollector = new QueryInteractionCollector<ColliderCastHit, C>(ref collector, true, Entities.Entity.Null);
+                        var interactionCollector = new QueryInteractionCollector<ColliderCastHit, C>(ref collector, true);
                         return ptr->CastCollider(input, ref interactionCollector);
                     }
                 }
@@ -1066,7 +1066,7 @@ namespace Unity.Physics
                     }
                     else
                     {
-                        var interactionCollector = new QueryInteractionCollector<ColliderCastHit, C>(ref collector, true, Entities.Entity.Null);
+                        var interactionCollector = new QueryInteractionCollector<ColliderCastHit, C>(ref collector, true);
                         return ptr->CastCollider(input, ref interactionCollector);
                     }
                 }
@@ -1152,7 +1152,7 @@ namespace Unity.Physics
                     }
                     else
                     {
-                        var interactionCollector = new QueryInteractionCollector<ColliderCastHit, C>(ref collector, true, Entities.Entity.Null);
+                        var interactionCollector = new QueryInteractionCollector<ColliderCastHit, C>(ref collector, true);
                         return ptr->CastCollider(input, ref interactionCollector);
                     }
                 }

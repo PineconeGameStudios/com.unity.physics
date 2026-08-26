@@ -1,11 +1,12 @@
 # Authoring
 
-You can edit your physics simulation and author your sub-scenes using the following authoring components.
+Edit your physics simulation and author your subscenes using the following authoring components.
 
-| Topic                                                            | Description                                                                      |
-|------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [Physics Step authoring component](component-step.md)                                | How to configure your physics simulation using the `Physics Step` authoring component.                            |
-| [Built-in physics authoring components](built-in-components.md)             | How to create rigid bodies and colliders using the built-in physics authoring components.                       |
-| [Custom physics authoring components](custom-samples-physics-components.md) | How to create rigid bodies and colliders using a custom set of physics authoring components.                         |
-| [Physics Debug Display authoring component](component-debug-display.md)              | How to enable 3D overlays for debugging your simulation using the `Physics Debug Display` component. |
-| [Custom physics body tags](tag-physics-body.md) | How to use custom tags in order to associate additional data with rigid bodies. |
+| **Topic** | **Description** |
+|---|---|
+| [Physics Step authoring component reference](component-step.md) | Explore the properties to control Unity Physics settings, gravity, solver iterations, and broadphase behavior. |
+| [Built-in physics authoring](built-in-components.md) | Create rigid bodies and colliders using the built-in physics authoring components. |
+| [Custom physics authoring](custom-samples-physics-components.md) | Create rigid bodies and colliders using a custom set of physics authoring components. |
+| [Choose constraint solvers](constraint-solvers.md) | Choose and assign the right constraint solver to rigid bodies and joints in your simulation. |
+| [Physics Debug Display component reference](component-debug-display.md) | Explore the settings to visualize Unity Physics behavior in the Unity Editor and at runtime. |
+| [Define custom behavior](tag-physics-body.md) | Use **Custom Physics Body Tags** to associate additional data with rigid bodies and define custom behavior. |

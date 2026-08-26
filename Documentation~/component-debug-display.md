@@ -1,86 +1,58 @@
-# Physics Debug Display
+# Physics Debug Display component reference
 
-To visualise Unity Physics, add a `Physics Debug Display` component. As usual, when working with Entities, a **SubScene** is necessary when adding the `Physics Debug Display` component.
+Explore the settings to visualize Unity Physics behavior in the Unity Editor and at runtime.
+
+To visualize Unity Physics, add a **Physics Debug Display** component. When you work with Entities, you must add the component to a subscene.
+
+## Physics Debug Display properties
+
+The Physics Debug Display contains the following properties.
+
+### Debug Display Options properties
+
+The Debug Display Options contain the following properties.
+
+| **Property** | **Description** |
+|---|---|
+| **Draw Colliders** | Displays a solid collider around the object. |
+| **Draw Collider Edges** | Displays only the edges of the collider. |
+| **Draw Collider AABBs** | Displays the collider's axis-aligned bounding box (AABB), which the broadphase uses. |
+| **Draw Mass Properties** | Displays the mass properties. |
+| **Draw Broadphase** | Displays the broadphase expansion of the bodies' collider AABBs caused by collision detection between two bodies. **Draw Collider AABBs** doesn't show this expansion. |
+| **Draw Contacts** | Displays a visualization of all contacts. |
+| **Draw Collision Events** | Displays a visualization of all collision events. |
+| **Draw Trigger Events** | Displays a visualization of all trigger events. |
+| **Draw Joints** | Displays a visualization of all joints, with degrees of freedom, constraints, anchor points, and axis alignments. |
+
+### Constraint Graph properties
+
+The Constraint Graph contains the following properties.
+
+| **Property** | **Description** |
+|---|---|
+| **Draw Direct Solver Islands** | Displays the joints and contacts that the [Direct Solver](constraint-solvers.md) resolves, as lines between the connected rigid bodies' centers. Each line color corresponds to a separate subproblem (a so-called island) that the solver resolves individually and in parallel (in a multithreaded simulation). |
+| **Draw Iterative Solver Phases** | Displays the joints and contacts that the [Iterative Solver](constraint-solvers.md) resolves, as lines between the connected rigid bodies' centers. Each line color corresponds to a subset of joints and contacts (a phase) that the solver might resolve in parallel (in a multithreaded simulation). The iterative solver display also includes joints and contacts that the direct solver resolves, because both solvers process these elements. |
+
+![collider_cast](images/physics-debug-display.png)<br/>Physics Debug Display component.
+
+### Integration Mode properties
+
+Integration Mode contains the following properties.
+
+| **Property** | **Description** |
+|---|---|
+| **Collider Display Mode** | Displays the debug display mode for colliders. |
+| **Collider Edges Display Mode** | Displays the debug display mode for collider edges. |
+| **Collider Aabb Display Mode** | Displays the debug display mode for the colliders' axis-aligned boundary boxes. |
 
 
-| Field                 | Description                                                                                                                                                |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Draw Colliders        | Displays a solid collider around the object.                                                                                                               |
-| Draw Collider Edges   | Displays only the edges of the collider.                                                                                                                   |
-| Draw Collider AABBs   | Displays the collider's Axis Aligned Bounding Box (AABB), which is usually used in the broadphase.                                                         |
-| Draw Broadphase       | Displays the Broadphase expanding the AABB's bodies colliders caused by the collision detection between two bodies. While *Draw Collider AABB's* does not. |
-| Draw Mass Properties  | Displays the mass properties.                                                                                                                              |
-| Draw Contacts         | Displays a visualization of all contacts.                                                                                                                  |
-| Draw Collision Events | Displays a visualization of all collision events.                                                                                                          |
-| Draw Trigger Events   | Displays a visualization of all trigger events.                                                                                                            |
-| Draw Joints           | Displays a visualization of all Joints, with degrees of freedom, constraints, anchor points and axis alignments.                                           |
+The debug display has two modes for the Collider, Collider Edges, and the Collider AABBs displays:
 
-![collider_cast](images/physics-debug-display.png)<br/>_Physics Debug Display component._
+* **Pre Integration**: The colliders display based on their positions and orientations before the physics step, as Unity Physics saw them in the collision detection stage of the current physics step.
+* **Post Integration**: The colliders display based on their position and orientation after the physics step, as they appear after Unity Physics has updated their positions and orientations at the end of the current physics step.
 
+## Additional resources
 
-## Physics Debug Display at Runtime
-
-### Enabling Physics Debug Display
-To enable the `Physics Debug Display` component in Player builds:
-
-1. Navigate to **Edit > Project Settings > Physics > Unity Physics**.
-2. Check **Enable Player Debug Display** project setting, or manually add the `ENABLE_UNITY_PHYSICS_RUNTIME_DEBUG_DISPLAY` scripting define symbol to your Player settings.
-
-### Important Notes
-
-Using `PhysicsDebugDisplayData` will help **debugging** physics behavior directly in-game if required. However, this debugger may impact performance, so avoid using `ENABLE_UNITY_PHYSICS_RUNTIME_DEBUG_DISPLAY` outside of development builds or for debugging purposes only.
-
-### Toggling Parameters at Runtime
-
-The following script demonstrates how to modify `PhysicsDebugDisplayData` at runtime by accessing the component and updating its values as needed. Refer to the [table above](#physics-debug-display) to enable or disable specific debug options.
-
-```csharp
-#if ENABLE_UNITY_PHYSICS_RUNTIME_DEBUG_DISPLAY
-using Unity.Burst;
-using Unity.Entities;
-using Unity.Physics.Authoring;
-using UnityEngine;
-
-[RequireMatchingQueriesForUpdate]
-[UpdateInGroup(typeof(PhysicsDebugDisplayGroup))]
-[BurstCompile]
-partial struct RuntimePhysicsDebugDisplayDataManager : ISystem
-{
-    [BurstCompile]
-    public void OnCreate(ref SystemState state)
-    {
-        state.RequireForUpdate<PhysicsDebugDisplayData>();
-    }
-
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state)
-    {
-        var debugDisplayData = SystemAPI.GetSingleton<PhysicsDebugDisplayData>();
-
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-            debugDisplayData.DrawColliders ^= 1;
-
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-            debugDisplayData.DrawColliderEdges ^= 1;
-
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-            debugDisplayData.DrawContacts ^= 1;
-
-        // Enable others:
-        //debugDisplayData.DrawCollisionEvents ^= 1;
-        //debugDisplayData.DrawColliderAabbs ^= 1;
-        //debugDisplayData.DrawTriggerEvents ^= 1;
-        //debugDisplayData.DrawJoints ^= 1;
-        //debugDisplayData.DrawMassProperties ^= 1;
-        //debugDisplayData.DrawBroadphase ^= 1;
-        //debugDisplayData.ColliderEdgesDisplayMode = (PhysicsDebugDisplayMode)((byte)debugDisplayData.ColliderEdgesDisplayMode ^ 1);
-        //debugDisplayData.ColliderAabbDisplayMode = (PhysicsDebugDisplayMode)((byte)debugDisplayData.ColliderAabbDisplayMode ^ 1);
-        //debugDisplayData.ColliderDisplayMode = (PhysicsDebugDisplayMode)((byte)debugDisplayData.ColliderDisplayMode ^ 1);
-
-        SystemAPI.SetSingleton(debugDisplayData);
-    }
-}
-#endif
-```
-
-![demo_code](images/component-debug-display.gif)
+- [Use Physics Debug Display at runtime](component-debug-display-runtime.md)
+- [Constraint solvers](constraint-solvers.md)
+- [Physics Step authoring component reference](component-step.md)

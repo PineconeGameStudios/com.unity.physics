@@ -11,6 +11,12 @@ namespace Unity.Physics
         internal int Offset;
         internal int Length;    // number of T, not number of bytes
 
+        internal static unsafe T* GetUnsafeReadOnlyPtr<T>(ref BlobArray blobArray) where T : unmanaged
+        {
+            int* offsetPtr = (int*)UnsafeUtility.AddressOf(ref blobArray.Offset);
+            return (T*)((byte*)offsetPtr + *offsetPtr);
+        }
+
         /// <summary>   Generic accessor. </summary>
         ///
         /// <typeparam name="T">    Generic type parameter. </typeparam>
@@ -38,8 +44,8 @@ namespace Unity.Physics
             /// <summary>
             /// Indexer to get items within this collection using array index syntax.
             /// </summary>
-            /// <param name="index"> Zero-based index of the entry to access. </param>
-            /// <value> The element at the specified index. </value>
+            /// <param name="index">Zero-based index of the entry to access.</param>
+            /// <value>The element at the specified index.</value>
             public ref T this[int index]
             {
                 get

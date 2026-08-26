@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics.Extensions;
+using Unity.Transforms;
 
 namespace Unity.Physics
 {
@@ -25,6 +26,9 @@ namespace Unity.Physics
         {
             Value = worldIndex;
         }
+
+        /// <summary>   Default physics world index. </summary>
+        public static readonly PhysicsWorldIndex Default = new ();
 
         /// <summary>   Tests if this PhysicsWorldIndex is considered equal to another. </summary>
         ///
@@ -251,6 +255,21 @@ namespace Unity.Physics
     }
 
     /// <summary>
+    /// <para> Optional solver type associated with a rigid body or a joint.</para>
+    /// <para> When assigned to a rigid body entity, this component determines which type of solver should be used to
+    /// resolve collisions between this and other bodies. </para>
+    /// <para> When assigned to a joint entity, this component determines which type of solver should be used to simulate
+    /// the joint's dynamics. </para>
+    /// </summary>
+    public struct PhysicsSolverType : IComponentData
+    {
+        /// <summary>
+        /// The <see cref="Unity.Physics.SolverType">solver type</see> value.
+        /// </summary>
+        public SolverType Value;
+    }
+
+    /// <summary>
     /// Optional gravity factor applied to a rigid body during each simulation step. This scales the
     /// gravity vector supplied to the simulation step.
     /// </summary>
@@ -315,10 +334,17 @@ namespace Unity.Physics
         public SimulationType SimulationType;
         /// <summary>   The gravity. </summary>
         public float3 Gravity;
+        /// <summary>
+        ///     Enables simulation of gyroscopic torque which increases the realism of the simulation and
+        ///     enhances the stability of rotating dynamic bodies.
+        /// </summary>
+        public bool EnableGyroscopicTorque;
         /// <summary>   Number of substeps. </summary>
         public int SubstepCount;
         /// <summary>   Number of Gauss-Seidel solver iterations. </summary>
         public int SolverIterationCount;
+        /// <summary> The direct solver settings. </summary>
+        public Solver.DirectSolverSettings DirectSolverSettings;
         /// <summary>   The global solver stabilization heuristic settings. </summary>
         public Solver.StabilizationHeuristicSettings SolverStabilizationHeuristicSettings;
 
@@ -367,8 +393,10 @@ namespace Unity.Physics
         {
             SimulationType = SimulationType.UnityPhysics,
             Gravity = -9.81f * math.up(),
+            EnableGyroscopicTorque = false,
             SubstepCount = 1,
             SolverIterationCount = 4,
+            DirectSolverSettings = Solver.DirectSolverSettings.Default,
             SolverStabilizationHeuristicSettings = Solver.StabilizationHeuristicSettings.Default,
             MultiThreaded = 1,
             CollisionTolerance = CollisionWorld.DefaultCollisionTolerance,

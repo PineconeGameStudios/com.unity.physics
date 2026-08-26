@@ -58,6 +58,7 @@ namespace Unity.Physics.Systems
                 PhysicsDampingType = systemState.GetComponentTypeHandle<PhysicsDamping>(true);
                 PhysicsGravityFactorType = systemState.GetComponentTypeHandle<PhysicsGravityFactor>(true);
                 PhysicsCustomTagsType = systemState.GetComponentTypeHandle<PhysicsCustomTags>(true);
+                PhysicsSolverTypeType = systemState.GetComponentTypeHandle<PhysicsSolverType>(true);
                 PhysicsConstrainedBodyPairType = systemState.GetComponentTypeHandle<PhysicsConstrainedBodyPair>(true);
                 PhysicsJointType = systemState.GetComponentTypeHandle<PhysicsJoint>(true);
                 SimulateType = systemState.GetComponentTypeHandle<Simulate>(true);
@@ -65,7 +66,7 @@ namespace Unity.Physics.Systems
                 PhysicsTemporalCoherenceInfoTypeRW = systemState.GetComponentTypeHandle<PhysicsTemporalCoherenceInfo>(false);
                 PhysicsTemporalCoherenceInfoLookupRW = systemState.GetComponentLookup<PhysicsTemporalCoherenceInfo>(false);
 
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
                 PhysicsWorldIndexType = systemState.GetSharedComponentTypeHandle<PhysicsWorldIndex>();
 #endif
             }
@@ -74,8 +75,7 @@ namespace Unity.Physics.Systems
             /// Updates the <see cref="PhysicsWorldComponentHandles"/>. Call this in OnUpdate() methods of
             /// the systems in which you want to store PhysicsWorldData in.
             /// </summary>
-            ///
-            /// <param name="systemState">  [in,out] State of the system. </param>
+            /// <param name="systemState">[in,out] State of the system.</param>
             public void Update(ref SystemState systemState)
             {
                 EntityType.Update(ref systemState);
@@ -91,6 +91,7 @@ namespace Unity.Physics.Systems
                 PhysicsDampingType.Update(ref systemState);
                 PhysicsGravityFactorType.Update(ref systemState);
                 PhysicsCustomTagsType.Update(ref systemState);
+                PhysicsSolverTypeType.Update(ref systemState);
                 PhysicsConstrainedBodyPairType.Update(ref systemState);
                 PhysicsJointType.Update(ref systemState);
                 SimulateType.Update(ref systemState);
@@ -98,7 +99,7 @@ namespace Unity.Physics.Systems
                 PhysicsTemporalCoherenceInfoTypeRW.Update(ref systemState);
                 PhysicsTemporalCoherenceInfoLookupRW.Update(ref systemState);
 
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
                 PhysicsWorldIndexType.Update(ref systemState);
 #endif
             }
@@ -116,6 +117,7 @@ namespace Unity.Physics.Systems
             internal ComponentTypeHandle<PhysicsDamping> PhysicsDampingType;
             internal ComponentTypeHandle<PhysicsGravityFactor> PhysicsGravityFactorType;
             internal ComponentTypeHandle<PhysicsCustomTags> PhysicsCustomTagsType;
+            internal ComponentTypeHandle<PhysicsSolverType> PhysicsSolverTypeType;
             internal ComponentTypeHandle<PhysicsConstrainedBodyPair> PhysicsConstrainedBodyPairType;
             internal ComponentTypeHandle<PhysicsJoint> PhysicsJointType;
             internal ComponentTypeHandle<Simulate> SimulateType;
@@ -123,7 +125,7 @@ namespace Unity.Physics.Systems
             internal ComponentTypeHandle<PhysicsTemporalCoherenceInfo> PhysicsTemporalCoherenceInfoTypeRW;
             internal ComponentLookup<PhysicsTemporalCoherenceInfo> PhysicsTemporalCoherenceInfoLookupRW;
 
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
             internal SharedComponentTypeHandle<PhysicsWorldIndex> PhysicsWorldIndexType;
 #endif
         }

@@ -2,11 +2,11 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
+using UnityEngine;
 
 namespace Unity.Physics.Authoring
 {
-    using UnityEngine;
-
     /// <summary>
     /// Marks a primary entity as a static root when building the compound colliders.
     /// </summary>
@@ -24,7 +24,9 @@ namespace Unity.Physics.Authoring
     struct BakeStaticRoot : IComponentData
     {
         public Entity Body;
-        public EntityId ConvertedBodyInstanceID;
+        public EntityId ConvertedBodyEntityId;
+        public float4x4 BodyLocalToWorld;
+        public float3 BodyLossyScale;
     }
 
     [BurstCompile]
@@ -35,6 +37,7 @@ namespace Unity.Physics.Authoring
         EntityQuery _ChangedBakeStaticRootQuery;
         EntityQuery _PreviousBakeStaticRootQuery;
         ComponentTypeSet _RootComponents;
+        ComponentTypeSet _TransformComponents;
         NativeHashSet<Entity> _StaticRootState; // Holds the set of static roots baked in a previous iteration.
 
         [BurstCompile]
@@ -56,6 +59,10 @@ namespace Unity.Physics.Authoring
                 ComponentType.ReadWrite<PhysicsWorldIndex>(),
                 ComponentType.ReadWrite<PhysicsCompoundData>(),
                 ComponentType.ReadWrite<PhysicsCollider>());
+
+            _TransformComponents = new ComponentTypeSet(
+                ComponentType.ReadWrite<LocalToWorld>(),
+                ComponentType.ReadWrite<LocalTransform>());
         }
 
         [BurstCompile]
@@ -82,6 +89,8 @@ namespace Unity.Physics.Authoring
                 if (!uniqueRoots.ContainsKey(r))
                 {
                     systemState.EntityManager.RemoveComponent(r, _RootComponents);
+                    systemState.EntityManager.RemoveComponent(r, _TransformComponents);
+
                     _StaticRootState.Remove(r);
                 }
             }
@@ -100,10 +109,38 @@ namespace Unity.Physics.Authoring
                 systemState.EntityManager.SetComponentData(rootEntity, new PhysicsCompoundData()
                 {
                     AssociateBlobToBody = false,
-                    ConvertedBodyInstanceID = kv.Value.ConvertedBodyInstanceID,
+                    ConvertedBodyEntityId = kv.Value.ConvertedBodyEntityId,
                     Hash = default,
                 });
+
+                SetupStaticRootTransform(ref systemState, rootEntity, kv.Value);
             }
+        }
+
+        void SetupStaticRootTransform(ref SystemState systemState, Entity rootEntity, in BakeStaticRoot staticRoot)
+        {
+            systemState.EntityManager.AddComponent(rootEntity, _TransformComponents);
+
+            var bodyL2W = staticRoot.BodyLocalToWorld;
+            var rigidBodyTransform = Math.DecomposeRigidBodyTransform(bodyL2W);
+
+            systemState.EntityManager.SetComponentData(rootEntity, new LocalToWorld { Value = bodyL2W });
+
+            var uniformScale = 1.0f;
+            if (bodyL2W.HasShear() || bodyL2W.HasNonUniformScale())
+            {
+                var compositeScale = math.mul(math.inverse(new float4x4(rigidBodyTransform)), bodyL2W);
+                if (!systemState.EntityManager.HasComponent<PostTransformMatrix>(rootEntity))
+                    systemState.EntityManager.AddComponent<PostTransformMatrix>(rootEntity);
+                systemState.EntityManager.SetComponentData(rootEntity, new PostTransformMatrix { Value = compositeScale });
+            }
+            else
+            {
+                uniformScale = math.abs(staticRoot.BodyLossyScale.x);
+            }
+
+            systemState.EntityManager.SetComponentData(rootEntity,
+                LocalTransform.FromPositionRotationScale(rigidBodyTransform.pos, rigidBodyTransform.rot, uniformScale));
         }
 
         [BurstCompile]

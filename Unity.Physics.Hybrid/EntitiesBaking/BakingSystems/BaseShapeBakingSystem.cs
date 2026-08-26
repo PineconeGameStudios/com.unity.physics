@@ -1,7 +1,4 @@
 #if UNITY_EDITOR
-#if UNITY_ANDROID && !UNITY_64
-#define UNITY_ANDROID_ARM7V
-#endif
 
 using System.Collections.Generic;
 using Unity.Burst;
@@ -81,15 +78,11 @@ namespace Unity.Physics.Authoring
         /// ShapeComputationalData.Instance where Instance is a member of ColliderInstanceBaking
         /// </summary>
         [WithOptions(EntityQueryOptions.IncludePrefab | EntityQueryOptions.IncludeDisabledEntities)]
-#if !UNITY_ANDROID_ARM7V
         [BurstCompile]
-#endif
         partial struct MeshHashesJob : IJobEntity
         {
             [ReadOnly] public UnityEngine.Mesh.MeshDataArray meshDataArray;
-#if !UNITY_ANDROID_ARM7V
             [BurstCompile]
-#endif
             private void Execute(ref PhysicsColliderAuthoringData colliderData, ref PhysicsColliderBakedData generatedData, in PhysicsMeshAuthoringData meshData)
             {
                 var hash = CalculateMeshHashes(ref colliderData.ShapeComputationalData, meshData, meshDataArray);
@@ -110,15 +103,11 @@ namespace Unity.Physics.Authoring
         /// ShapeComputationalData.Instance where Instance is a member of ColliderInstanceBaking
         /// </summary>
         [WithOptions(EntityQueryOptions.IncludePrefab | EntityQueryOptions.IncludeDisabledEntities)]
-#if !UNITY_ANDROID_ARM7V
         [BurstCompile]
-#endif
         [WithNone(typeof(PhysicsMeshAuthoringData))]
         partial struct BasicHashesJob : IJobEntity
         {
-#if !UNITY_ANDROID_ARM7V
             [BurstCompile]
-#endif
             private void Execute(ref PhysicsColliderAuthoringData colliderData, ref PhysicsColliderBakedData generatedData)
             {
                 // Calculating the hash

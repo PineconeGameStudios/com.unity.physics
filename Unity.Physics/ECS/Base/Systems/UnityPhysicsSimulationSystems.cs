@@ -4,8 +4,6 @@ using Unity.Jobs;
 
 namespace Unity.Physics.Systems
 {
-#if !HAVOK_PHYSICS_EXISTS
-
     [BurstCompile]
     [UpdateInGroup(typeof(PhysicsSimulationGroup), OrderFirst = true)]
     [CreateBefore(typeof(PhysicsInitializeGroup))]
@@ -100,8 +98,6 @@ namespace Unity.Physics.Systems
         }
     }
 
-#endif
-
     struct BroadphaseData : IComponentData
     {
         internal bool m_SimulationDisposed;
@@ -191,9 +187,11 @@ namespace Unity.Physics.Systems
                 World = SystemAPI.GetSingletonRW<PhysicsWorldSingleton>().ValueRW.PhysicsWorld,
                 TimeStep = timeStep,
                 Gravity = stepComponent.Gravity,
+                EnableGyroscopicTorque = stepComponent.EnableGyroscopicTorque,
                 SynchronizeCollisionWorld = stepComponent.SynchronizeCollisionWorld > 0,
                 NumSubsteps = stepComponent.SubstepCount,
                 NumSolverIterations = stepComponent.SolverIterationCount,
+                DirectSolverSettings = stepComponent.DirectSolverSettings,
                 MaxDynamicDepenetrationVelocity = stepComponent.MaxDynamicDepenetrationVelocity,
                 MaxStaticDepenetrationVelocity = stepComponent.MaxStaticDepenetrationVelocity,
                 SolverStabilizationHeuristicSettings = stepComponent.SolverStabilizationHeuristicSettings,
@@ -203,7 +201,8 @@ namespace Unity.Physics.Systems
             // Chain the previous frame's disposes before new frame can allocate.
             ref var broadphaseData = ref SystemAPI.GetSingletonRW<BroadphaseData>().ValueRW;
             state.Dependency = broadphaseData.m_UnityPhysicsSimulation.ScheduleBroadphaseJobsInternal(stepInput,
-                    state.Dependency, multiThreaded, stepComponent.IncrementalDynamicBroadphase, stepComponent.IncrementalStaticBroadphase)
+                JobHandle.CombineDependencies(state.Dependency, broadphaseData.m_UnityPhysicsSimulation.m_StepHandles.FinalDisposeHandle),
+                multiThreaded, stepComponent.IncrementalDynamicBroadphase, stepComponent.IncrementalStaticBroadphase)
                 .FinalExecutionHandle;
 
             SystemAPI.SetSingleton<StepInputSingleton>(new StepInputSingleton { StepInput = stepInput, MultiThreaded = multiThreaded });

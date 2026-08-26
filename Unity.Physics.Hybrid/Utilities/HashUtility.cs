@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -15,14 +16,20 @@ namespace Unity.Physics.Authoring
             if (s_Initialized)
                 return;
             byte data = 0;
-#if !(UNITY_ANDROID && !UNITY_64) // !Android32
-            // ensure xxHash3 Burst delegate has been compiled on the main thread before it is used anywhere
-            xxHash3.Hash128(UnsafeUtility.AddressOf(ref data), 1);
-#else
-            // ensure internal UnityEngine.SpookyHash class is initialized on the main thread before it is used anywhere
-            var hash128 = new UnityEngine.Hash128();
-            UnityEngine.HashUnsafeUtilities.ComputeHash128(UnsafeUtility.AddressOf(ref data), 1, &hash128);
+#if UNITY_ANDROID
+            // On 32-bit Android, use SpookyHash instead of xxHash3 due to alignment restrictions
+            if (IntPtr.Size == 4)
+            {
+                // ensure internal UnityEngine.SpookyHash class is initialized on the main thread before it is used anywhere
+                var hash128 = new UnityEngine.Hash128();
+                UnityEngine.HashUnsafeUtilities.ComputeHash128(UnsafeUtility.AddressOf(ref data), 1, &hash128);
+            }
+            else
 #endif
+            {
+                // ensure xxHash3 Burst delegate has been compiled on the main thread before it is used anywhere
+                xxHash3.Hash128(UnsafeUtility.AddressOf(ref data), 1);
+            }
             s_Initialized = true;
         }
 
@@ -44,17 +51,18 @@ namespace Unity.Physics.Authoring
         public static unsafe Hash128 Hash128(void* ptr, int length)
         {
             UnityEngine.Assertions.Assert.IsTrue(s_Initialized, k_InitializedMessage);
-#if !(UNITY_ANDROID && !UNITY_64) // !Android32
-            // Getting memory alignment errors from HashUtility.Hash128 on Android32
-            return new Hash128(xxHash3.Hash128(ptr, length));
-#else
-            var result = new UnityEngine.Hash128();
-            UnityEngine.HashUnsafeUtilities.ComputeHash128(ptr, (ulong)length, &result);
-            return new Hash128(new HashUnion { UnityEngine_Hash = result }.Entities_Hash);
+#if UNITY_ANDROID
+            // On 32-bit Android, use SpookyHash due to memory alignment errors with xxHash3
+            if (IntPtr.Size == 4)
+            {
+                var result = new UnityEngine.Hash128();
+                UnityEngine.HashUnsafeUtilities.ComputeHash128(ptr, (ulong)length, &result);
+                return new Hash128(new HashUnion { UnityEngine_Hash = result }.Entities_Hash);
+            }
 #endif
+            return new Hash128(xxHash3.Hash128(ptr, length));
         }
 
-#if (UNITY_ANDROID && !UNITY_64) // Android32
         [StructLayout(LayoutKind.Explicit)]
         struct HashUnion
         {
@@ -63,6 +71,5 @@ namespace Unity.Physics.Authoring
             [FieldOffset(0)]
             public uint4 Entities_Hash;
         }
-#endif
     }
 }

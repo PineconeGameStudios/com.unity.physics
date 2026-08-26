@@ -33,6 +33,15 @@ namespace Unity.Physics
         [System.Runtime.InteropServices.FieldOffset(44)]
         public byte CustomTags;
 
+        /// <summary>
+        /// <para> The rigid body's <see cref="Unity.Physics.SolverType">solver type</see>.</para>
+        /// <para> Used for determining which type of solver should be used to resolve collisions between this
+        /// and other bodies.</para>
+        /// <para> Default is <see cref="SolverType.Iterative">iterative</see>.</para>
+        /// </summary>
+        [System.Runtime.InteropServices.FieldOffset(45)]
+        public SolverType SolverType;
+
         /// <summary>   The rigid body's scale in world space. </summary>
         [System.Runtime.InteropServices.FieldOffset(48)]
         public float Scale;
@@ -589,7 +598,7 @@ namespace Unity.Physics
         #endregion
 
         #endregion
-
+        
         #region private
 
         #endregion

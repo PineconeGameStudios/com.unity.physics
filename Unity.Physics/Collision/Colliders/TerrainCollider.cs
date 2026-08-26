@@ -966,7 +966,7 @@ namespace Unity.Physics
                     }
                     level -= levelSize.x * levelSize.y; // pointer to the beginning of the current level's nodes
 
-#if DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                     SafetyChecks.Check4ByteAlignmentAndThrow(levelData, nameof(levelData));
 #endif
                     // Save the current level description for lookup in queries

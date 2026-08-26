@@ -22,7 +22,7 @@ namespace Unity.Physics.Systems
     {
         PhysicsWorldExporter.ExportPhysicsWorldTypeHandles m_ComponentTypeHandles;
 
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
         IntegrityComponentHandles m_IntegrityCheckHandles;
 #endif
 
@@ -30,7 +30,7 @@ namespace Unity.Physics.Systems
         public void OnCreate(ref SystemState state)
         {
             m_ComponentTypeHandles = new PhysicsWorldExporter.ExportPhysicsWorldTypeHandles(ref state);
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
 
             m_IntegrityCheckHandles = new IntegrityComponentHandles(ref state);
 #endif
@@ -45,7 +45,7 @@ namespace Unity.Physics.Systems
 
             ref var buildPhysicsData = ref SystemAPI.GetSingletonRW<BuildPhysicsWorldData>().ValueRW;
 
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
             if (!SystemAPI.TryGetSingleton<PhysicsStep>(out var physicsStep))
             {
                 physicsStep = PhysicsStep.Default;
@@ -60,7 +60,7 @@ namespace Unity.Physics.Systems
 
         #region Integrity checks
 
-#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
+#if (UNITY_EDITOR || UNITY_ENABLE_CHECKS) && !UNITY_PHYSICS_DISABLE_INTEGRITY_CHECKS
 
         struct IntegrityComponentHandles
         {
